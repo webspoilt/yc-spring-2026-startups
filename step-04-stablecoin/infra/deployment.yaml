@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stablecoin
+  labels:
+    app: stablecoin
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: stablecoin
+  template:
+    metadata:
+      labels:
+        app: stablecoin
+    spec:
+      containers:
+      - name: stablecoin
+        image: stablecoin:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+        env:
+        - name: POLYGON_RPC
+          valueFrom:
+            secretKeyRef:
+              name: stablecoin-secrets
+              key: polygon-rpc
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stablecoin
+spec:
+  selector:
+    app: stablecoin
+  ports:
+  - port: 80
+    targetPort: 8000
+  type: ClusterIP

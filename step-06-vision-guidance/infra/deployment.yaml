@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vision-guidance
+  labels:
+    app: vision-guidance
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vision-guidance
+  template:
+    metadata:
+      labels:
+        app: vision-guidance
+    spec:
+      containers:
+      - name: vision-guidance
+        image: vision-guidance:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1000m"
+            gpu: "1"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+            gpu: "1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vision-guidance
+spec:
+  selector:
+    app: vision-guidance
+  ports:
+  - port: 80
+    targetPort: 8000
+  type: ClusterIP

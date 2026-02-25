@@ -1,0 +1,152 @@
+version: '3.8'
+
+services:
+  # Step 1: PM Cursor - Product Management Tool
+  pm-cursor:
+    build: ./step-01-pm-cursor/infra
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=postgresql://pmuser:pmpass@pm-db:5432/pmcursor
+    depends_on:
+      - pm-db
+    networks:
+      - ai-monorepo
+
+  pm-db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=pmuser
+      - POSTGRES_PASSWORD=pmpass
+      - POSTGRES_DB=pmcursor
+    volumes:
+      - pm-data:/var/lib/postgresql/data
+    networks:
+      - ai-monorepo
+
+  # Step 2: Quant Fund
+  quant-fund:
+    build: ./step-02-quant-fund/infra
+    ports:
+      - "8002:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    networks:
+      - ai-monorepo
+
+  # Step 3: AI Agency
+  ai-agency:
+    build: ./step-03-ai-agency/infra
+    ports:
+      - "8003:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    networks:
+      - ai-monorepo
+
+  # Step 4: Stablecoin
+  stablecoin:
+    build: ./step-04-stablecoin/infra
+    ports:
+      - "8004:8000"
+    environment:
+      - POLYGON_RPC=${POLYGON_RPC:-}
+      - AAVE_API_KEY=${AAVE_API_KEY:-}
+    networks:
+      - ai-monorepo
+
+  # Step 5: Gov AI
+  gov-ai:
+    build: ./step-05-gov-ai/infra
+    ports:
+      - "8005:8000"
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    networks:
+      - ai-monorepo
+
+  # Step 6: Vision Guidance
+  vision-guidance:
+    build: ./step-06-vision-guidance/infra
+    ports:
+      - "8006:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    networks:
+      - ai-monorepo
+
+  # Step 7: Spatial Transformer
+  spatial-transformer:
+    build: ./step-07-spatial-transformer/infra
+    ports:
+      - "8007:8000"
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+    networks:
+      - ai-monorepo
+
+  # Step 8: Fraud System
+  fraud-system:
+    build: ./step-08-fraud-system/infra
+    ports:
+      - "8008:8000"
+    environment:
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_PASSWORD=fraudpass
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    depends_on:
+      - neo4j
+    networks:
+      - ai-monorepo
+
+  neo4j:
+    image: neo4j:5
+    environment:
+      - NEO4J_AUTH=neo4j/fraudpass
+    volumes:
+      - neo4j-data:/data
+    networks:
+      - ai-monorepo
+
+  # Step 9: MLOps
+  mlops:
+    build: ./step-09-mlops/infra
+    ports:
+      - "8009:8000"
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+    networks:
+      - ai-monorepo
+
+  # Step 10: AI MES
+  ai-mes:
+    build: ./step-10-ai-mes/infra
+    ports:
+      - "8010:8000"
+    environment:
+      - MQTT_BROKER=mosquitto
+    depends_on:
+      - mosquitto
+    networks:
+      - ai-monorepo
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    volumes:
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-logs:/mosquitto/log
+    networks:
+      - ai-monorepo
+
+networks:
+  ai-monorepo:
+    driver: bridge
+
+volumes:
+  pm-data:
+  neo4j-data:
+  mosquitto-data:
+  mosquitto-logs:

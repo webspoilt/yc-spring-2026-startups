@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fraud-system
+  labels:
+    app: fraud-system
+    project: ai-monorepo
+    step: "08"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fraud-system
+  template:
+    metadata:
+      labels:
+        app: fraud-system
+    spec:
+      containers:
+      - name: fraud-system
+        image: fraud-system:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+        env:
+        - name: NEO4J_URI
+          value: "bolt://neo4j:7687"
+        - name: NEO4J_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: fraud-secrets
+              key: neo4j-password
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: fraud-secrets
+              key: openai-api-key
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fraud-system
+spec:
+  selector:
+    app: fraud-system
+  ports:
+  - port: 80
+    targetPort: 8000
+  type: ClusterIP

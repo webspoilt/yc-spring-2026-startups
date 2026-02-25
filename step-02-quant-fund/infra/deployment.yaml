@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quant-fund
+  labels:
+    app: quant-fund
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quant-fund
+  template:
+    metadata:
+      labels:
+        app: quant-fund
+    spec:
+      containers:
+      - name: quant-fund
+        image: quant-fund:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+        env:
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: quant-fund-secrets
+              key: openai-api-key
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quant-fund
+spec:
+  selector:
+    app: quant-fund
+  ports:
+  - port: 80
+    targetPort: 8000
+  type: ClusterIP

@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-agency
+  labels:
+    app: ai-agency
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ai-agency
+  template:
+    metadata:
+      labels:
+        app: ai-agency
+    spec:
+      containers:
+      - name: ai-agency
+        image: ai-agency:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+        env:
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-agency-secrets
+              key: openai-api-key
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-agency
+spec:
+  selector:
+    app: ai-agency
+  ports:
+  - port: 80
+    targetPort: 8000
+  type: ClusterIP
